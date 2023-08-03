@@ -131,9 +131,13 @@ namespace mini_proyek.Services
                 //dynamic objJson = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(request.field[i].ToJson());
                 dynamic objJson = JsonConvert.DeserializeObject<dynamic>(JsonConvert.SerializeObject(request.filter[i], Formatting.Indented));
 
-                if (objJson["fieldName"] == "kategoriName")
+                if (objJson["fieldName"] == "areaName")
                 {
-                    filter = "kategori_name";
+                    filter = "a.area_kategori_id";
+                }
+                else if (objJson["fieldName"] == "areaNumber")
+                {
+                    filter = "a.area_number";
                 }
 
                 qfilter += " AND " + filter + " = '" + objJson["value"] + "' ";
@@ -145,8 +149,9 @@ namespace mini_proyek.Services
             using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
             {
                 List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
-                string querys = String.Format("SELECT kat_id AS id,kategori_name name,kategori_area_sts as status " +
-                    "FROM md_kategori_area WITH(NOLOCK) where 1=1 {0}  ORDER BY kat_id OFFSET ({1}-1)*{2} ROWS FETCH NEXT {2} ROWS ONLY ", qfilter, request.index, request.perpage);
+                string querys = String.Format("SELECT a.area_id AS id, b.kategori_name AS areaName, a.area_number as areaNumber " +
+                    "FROM mg_parking_area a WITH (NOLOCK) join md_kategori_area b on a.area_kategori_id=b.kat_id where 1=1 {0}  ORDER BY a.area_id OFFSET ({1}-1)*{2} ROWS FETCH NEXT {2} ROWS ONLY ", 
+                    qfilter, request.index, request.perpage);
                 SqlCommand cmd = new SqlCommand(querys, con);
                 con.Open();
                 cmd.CommandType = CommandType.Text;
@@ -172,7 +177,7 @@ namespace mini_proyek.Services
                         dataResult.Add(resx);
                     }
                     res.Add("status", "1");
-                    res.Add("message", "Get Data Kategori Success");
+                    res.Add("message", "Get Data Area Success");
                     res["data"] = dataResult;
 
 
@@ -185,7 +190,7 @@ namespace mini_proyek.Services
                 else
                 {
                     res.Add("status", "1");
-                    res.Add("message", "Get Data Kategori Not Found");
+                    res.Add("message", "Get Data Area Not Found");
                 }
 
             }
