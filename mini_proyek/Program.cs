@@ -14,6 +14,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<KategoriInterfaces, KategoriServices>();
 builder.Services.AddScoped<AreaInterfaces, AreaServices>();
+builder.Services.AddScoped<SlotInterface, SlotsServices>();
 
 var app = builder.Build();
 

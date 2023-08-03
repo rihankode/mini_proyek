@@ -21,8 +21,6 @@ namespace mini_proyek.Services
             var resenkrip = new Dictionary<string, object>();
             var res = new Dictionary<string, object>();
             var resError = new Dictionary<string, object>();
-            List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
-            List<Dictionary<string, object>> errorResukt = new List<Dictionary<string, object>>();
 
             try
             {
@@ -67,14 +65,21 @@ namespace mini_proyek.Services
                             }
                             else
                             {
-                                SqlCommand cmd = new SqlCommand(" INSERT INTO mg_parking_area (area_kategori_id,area_number) VALUES (@kategori,@number) " +
-                              "", con);
+
+                                
+
+                                SqlCommand cmd3 = new SqlCommand("Sp_Create_Data_Area", con);
                                 con.Open();
-                                cmd.CommandType = CommandType.Text;
-                                cmd.Parameters.AddWithValue("@kategori", kategoriId);
-                                cmd.Parameters.AddWithValue("@number", areaName);
-                                cmd.ExecuteNonQuery();
+                                cmd3.CommandType = CommandType.StoredProcedure;
+                                cmd3.Parameters.AddWithValue("@kategoriId", kategoriId);
+                                cmd3.Parameters.AddWithValue("@areaName", areaName);
+                                SqlDataAdapter adpt1 = new SqlDataAdapter(cmd3);
+                                DataTable dt1 = new DataTable();
+                                adpt1.Fill(dt1);
                                 con.Close();
+
+                               
+
                             }
 
                         }
