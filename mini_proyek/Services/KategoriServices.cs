@@ -23,10 +23,7 @@ namespace mini_proyek.Services
         {
 
             var resenkrip = new Dictionary<string, object>();
-            var res = new Dictionary<string, object>();
             var resError = new Dictionary<string, object>();
-            List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
-            List<Dictionary<string, object>> errorResukt = new List<Dictionary<string, object>>();
 
             try
             {
@@ -114,23 +111,32 @@ namespace mini_proyek.Services
 
          
 
-                var res = new Dictionary<string, object>();
+                var resenkrip = new Dictionary<string, object>();
 
-
-            using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
+            try
             {
-                List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
-                SqlCommand cmd = new SqlCommand("DELETE FROM md_kategori_area WHERE kat_id = @id ", con);
-                con.Open();
-                cmd.CommandType = CommandType.Text;
-                cmd.Parameters.AddWithValue("@id", request.id);
-                cmd.ExecuteNonQuery();
-                //cmd.Parameters.AddWithValue("@regno", request.regno);
-                //cmd.Parameters.AddWithValue("@type", request.type);
-                con.Close();
+                using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
+                {
+                    List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
+                    SqlCommand cmd = new SqlCommand("DELETE FROM md_kategori_area WHERE kat_id = @id ", con);
+                    con.Open();
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@id", request.id);
+                    cmd.ExecuteNonQuery();
+                    //cmd.Parameters.AddWithValue("@regno", request.regno);
+                    //cmd.Parameters.AddWithValue("@type", request.type);
+                    con.Close();
+                }
+                resenkrip.Add("status", "1");
+                resenkrip.Add("message", "Hapus Data Kategori Success");
             }
-
-            return res;
+            catch (Exception e)
+            {
+                resenkrip.Add("status", "0");
+                resenkrip.Add("message", "Hapus Data Kategori Gagal");
+            }
+            
+            return resenkrip;
         }
         public Dictionary<string, object> Get_kategori(Kategori request)
         {
@@ -208,32 +214,76 @@ namespace mini_proyek.Services
         }
         public Dictionary<string, object> Update_Data_katgeori(Kategori request)
         {
-            var res = new Dictionary<string, object>();
-
-            for (int i = 0; i < request.data?.Count; i++)
+            var resenkrip = new Dictionary<string, object>();
+            var resError = new Dictionary<string, object>();
+            try
             {
-                //dynamic objJson = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(request.field[i].ToJson());
-                dynamic objJson = JsonConvert.DeserializeObject<dynamic>(JsonConvert.SerializeObject(request.data[i], Formatting.Indented));
-
-                string data = objJson["kategoriName"].ToString();
-
-
-                using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
+                for (int i = 0; i < request.data?.Count; i++)
                 {
-                    List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
-                    SqlCommand cmd = new SqlCommand("UPDATE md_kategori_area SET kategori_name = @kategori where kat_id=@id ", con);
-                    con.Open();
-                    cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.AddWithValue("@kategori", data);
-                    cmd.Parameters.AddWithValue("@id", request.id);
-                    cmd.ExecuteNonQuery();
-                    //cmd.Parameters.AddWithValue("@regno", request.regno);
-                    //cmd.Parameters.AddWithValue("@type", request.type);
-                    con.Close();
+                    //dynamic objJson = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(request.field[i].ToJson());
+                    dynamic objJson = JsonConvert.DeserializeObject<dynamic>(JsonConvert.SerializeObject(request.data[i], Formatting.Indented));
+
+                    string data = objJson["kategoriName"].ToString();
+
+                    if (data == "")
+                    {
+                        resError["error"] = "data tidak boleh kosong !!";
+                        resenkrip.Add("status", "0");
+                        resenkrip.Add("message", "Update Data Kategori Gagal");
+                        resenkrip["data"] = resError;
+                        return resenkrip;
+                    }
+                    else
+                    {
+                        using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
+                        {
+
+                            SqlCommand cmd1 = new SqlCommand(" select top 1 1 from md_kategori_area where kategori_name = @kategori " +
+                             "", con);
+                            con.Open();
+                            cmd1.CommandType = CommandType.Text;
+                            cmd1.Parameters.AddWithValue("@kategori", data);
+                            SqlDataAdapter adpt = new SqlDataAdapter(cmd1);
+                            DataTable dt = new DataTable();
+                            adpt.Fill(dt);
+                            con.Close();
+
+                            if (dt.Rows.Count == 1)
+                            {
+                                resError["error"] = "data tidak boleh sama !!";
+                                resenkrip.Add("status", "0");
+                                resenkrip.Add("message", "Tambah Data Kategori Gagal");
+                                resenkrip["data"] = resError;
+                                return resenkrip;
+                            }
+                            else
+                            {
+
+                                List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
+                                SqlCommand cmd = new SqlCommand("UPDATE md_kategori_area SET kategori_name = @kategori where kat_id=@id ", con);
+                                con.Open();
+                                cmd.CommandType = CommandType.Text;
+                                cmd.Parameters.AddWithValue("@kategori", data);
+                                cmd.Parameters.AddWithValue("@id", request.id);
+                                cmd.ExecuteNonQuery();
+                                //cmd.Parameters.AddWithValue("@regno", request.regno);
+                                //cmd.Parameters.AddWithValue("@type", request.type);
+                                con.Close();
+                            }
+                        }
+                    }
                 }
 
+                resenkrip.Add("status", "1");
+                resenkrip.Add("message", "Update Data Kategori Sukses");
             }
-            return res;
+            catch (Exception e)
+            {
+                resenkrip.Add("status", "0");
+                resenkrip.Add("message", "Update Data Kategori Gagal");
+            }
+           
+            return resenkrip;
         }
 
     }

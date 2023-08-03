@@ -101,22 +101,37 @@ namespace mini_proyek.Services
         public Dictionary<string, object> Delete_area(Area request)
         {
 
-            var res = new Dictionary<string, object>();
+            var resenkrip = new Dictionary<string, object>();
 
-            using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
+
+            try
             {
-                List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
-                SqlCommand cmd = new SqlCommand("DELETE FROM mg_parking_area WHERE area_id = @id ", con);
-                con.Open();
-                cmd.CommandType = CommandType.Text;
-                cmd.Parameters.AddWithValue("@id", request.id);
-                cmd.ExecuteNonQuery();
-                //cmd.Parameters.AddWithValue("@regno", request.regno);
-                //cmd.Parameters.AddWithValue("@type", request.type);
-                con.Close();
+                using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
+                {
+                    List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
+                    SqlCommand cmd = new SqlCommand("DELETE FROM mg_parking_area WHERE area_id = @id ", con);
+                    con.Open();
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@id", request.id);
+                    cmd.ExecuteNonQuery();
+                    //cmd.Parameters.AddWithValue("@regno", request.regno);
+                    //cmd.Parameters.AddWithValue("@type", request.type);
+                    con.Close();
+                }
+
+
+                resenkrip.Add("status", "1");
+                resenkrip.Add("message", "Hapus Data Ares Success");
+            }
+            catch (Exception e )
+            {
+                resenkrip.Add("status", "0");
+                resenkrip.Add("message", "Hapus Data Ares Gagal");
             }
 
-            return res;
+           
+
+            return resenkrip;
         }
         public Dictionary<string, object> Get_data_Area(Area request)
         {
