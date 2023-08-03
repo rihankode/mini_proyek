@@ -1,0 +1,280 @@
+﻿using Microsoft.Data.SqlClient;
+using mini_proyek.Interfaces;
+using mini_proyek.Models;
+using Newtonsoft.Json;
+using System.Data;
+
+namespace mini_proyek.Services
+{
+    public class AreaServices : AreaInterfaces
+    {
+        private DbContex _context;
+        private IConfiguration _configuration;
+        public AreaServices(DbContex context, IConfiguration configuration)
+        {
+            _context = context;
+            _configuration = configuration;
+        }
+        public Dictionary<string, object> Create_data_area(Area request)
+        {
+
+            var resenkrip = new Dictionary<string, object>();
+            var res = new Dictionary<string, object>();
+            var resError = new Dictionary<string, object>();
+            List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
+            List<Dictionary<string, object>> errorResukt = new List<Dictionary<string, object>>();
+
+            try
+            {
+                for (int i = 0; i < request.data?.Count; i++)
+                {
+                    //dynamic objJson = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(request.field[i].ToJson());
+                    dynamic objJson = JsonConvert.DeserializeObject<dynamic>(JsonConvert.SerializeObject(request.data[i], Formatting.Indented));
+                    string kategoriId = objJson["kategoriId"].ToString();
+                    string areaName = objJson["areaNumber"].ToString();
+
+                    if (kategoriId == "" || areaName == "")
+                    {
+                        resError["error"] = "data tidak boleh kosong !!";
+                        resenkrip.Add("status", "0");
+                        resenkrip.Add("message", "Tambah Data Area Gagal");
+                        resenkrip["data"] = resError;
+                        return resenkrip;
+                    }
+                    else
+                    {
+                        using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
+                        {
+
+                            SqlCommand cmd1 = new SqlCommand(" select top 1 1 from mg_parking_area where area_kategori_id = @kategori and area_number = @number " +
+                               "", con);
+                            con.Open();
+                            cmd1.CommandType = CommandType.Text;
+                            cmd1.Parameters.AddWithValue("@kategori", kategoriId);
+                            cmd1.Parameters.AddWithValue("@number", areaName);
+                            SqlDataAdapter adpt = new SqlDataAdapter(cmd1);
+                            DataTable dt = new DataTable();
+                            adpt.Fill(dt);
+                            con.Close();
+
+                            if (dt.Rows.Count == 1)
+                            {
+                                resError["error"] = "data tidak boleh sama !!";
+                                resenkrip.Add("status", "0");
+                                resenkrip.Add("message", "Tambah Data Area Gagal");
+                                resenkrip["data"] = resError;
+                                return resenkrip;
+                            }
+                            else
+                            {
+                                SqlCommand cmd = new SqlCommand(" INSERT INTO mg_parking_area (area_kategori_id,area_number) VALUES (@kategori,@number) " +
+                              "", con);
+                                con.Open();
+                                cmd.CommandType = CommandType.Text;
+                                cmd.Parameters.AddWithValue("@kategori", kategoriId);
+                                cmd.Parameters.AddWithValue("@number", areaName);
+                                cmd.ExecuteNonQuery();
+                                con.Close();
+                            }
+
+                        }
+
+                    }
+
+                }
+
+
+                resenkrip.Add("status", "1");
+                resenkrip.Add("message", "Tambah Data Ares Success");
+                //resenkrip["data"] = dataResult;
+            }
+            catch (Exception e)
+            {
+                resenkrip.Add("status", "0");
+                resenkrip.Add("message", "Tambah Data Area Gagal");
+            }
+
+
+
+            return resenkrip;
+        }
+        public Dictionary<string, object> Delete_area(Area request)
+        {
+
+            var res = new Dictionary<string, object>();
+
+            using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
+            {
+                List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
+                SqlCommand cmd = new SqlCommand("DELETE FROM mg_parking_area WHERE area_id = @id ", con);
+                con.Open();
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.AddWithValue("@id", request.id);
+                cmd.ExecuteNonQuery();
+                //cmd.Parameters.AddWithValue("@regno", request.regno);
+                //cmd.Parameters.AddWithValue("@type", request.type);
+                con.Close();
+            }
+
+            return res;
+        }
+        public Dictionary<string, object> Get_data_Area(Area request)
+        {
+
+            var res = new Dictionary<string, object>();
+
+            string filter = "";
+            string qfilter = "";
+
+            for (int i = 0; i < request.filter?.Count; i++)
+            {
+                //dynamic objJson = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(request.field[i].ToJson());
+                dynamic objJson = JsonConvert.DeserializeObject<dynamic>(JsonConvert.SerializeObject(request.filter[i], Formatting.Indented));
+
+                if (objJson["fieldName"] == "kategoriName")
+                {
+                    filter = "kategori_name";
+                }
+
+                qfilter += " AND " + filter + " = '" + objJson["value"] + "' ";
+            }
+
+            var dump = qfilter;
+
+
+            using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
+            {
+                List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
+                string querys = String.Format("SELECT kat_id AS id,kategori_name name,kategori_area_sts as status " +
+                    "FROM md_kategori_area WITH(NOLOCK) where 1=1 {0}  ORDER BY kat_id OFFSET ({1}-1)*{2} ROWS FETCH NEXT {2} ROWS ONLY ", qfilter, request.index, request.perpage);
+                SqlCommand cmd = new SqlCommand(querys, con);
+                con.Open();
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.AddWithValue("@INDEX", request.index);
+                cmd.Parameters.AddWithValue("@PERPAGE", request.perpage);
+                cmd.ExecuteNonQuery();
+                //cmd.Parameters.AddWithValue("@regno", request.regno);
+                //cmd.Parameters.AddWithValue("@type", request.type);
+                SqlDataAdapter adpt = new SqlDataAdapter(cmd);
+                DataTable dt = new DataTable();
+                adpt.Fill(dt);
+                con.Close();
+
+                if (dt.Rows.Count > 0)
+                {
+                    for (int i = 0; i < dt.Rows.Count; i++)
+                    {
+                        var resx = new Dictionary<string, object>();
+                        for (int j = 0; j < dt.Columns.Count; j++)
+                        {
+                            resx[dt.Columns[j].ToString()] = dt.Rows[i][j].ToString();
+                        }
+                        dataResult.Add(resx);
+                    }
+                    res.Add("status", "1");
+                    res.Add("message", "Get Data Kategori Success");
+                    res["data"] = dataResult;
+
+
+                    //#region Log Location
+
+                    //Log_User_Location(request.userid, request.lon, request.lat, request.addr, "Get Data All");
+
+                    //#endregion
+                }
+                else
+                {
+                    res.Add("status", "1");
+                    res.Add("message", "Get Data Kategori Not Found");
+                }
+
+            }
+
+            return res;
+        }
+        public Dictionary<string, object> Update_Data_area(Area request)
+        {
+            var resenkrip = new Dictionary<string, object>();
+            var resError = new Dictionary<string, object>();
+
+
+            try
+            {
+                for (int i = 0; i < request.data?.Count; i++)
+                {
+                    //dynamic objJson = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(request.field[i].ToJson());
+                    dynamic objJson = JsonConvert.DeserializeObject<dynamic>(JsonConvert.SerializeObject(request.data[i], Formatting.Indented));
+
+
+                    string kategoriId = objJson["kategoriId"].ToString();
+                    string areaName = objJson["areaNumber"].ToString();
+
+
+                    if (kategoriId == "" || areaName == "")
+                    {
+                        resError["error"] = "data tidak boleh kosong !!";
+                        resenkrip.Add("status", "0");
+                        resenkrip.Add("message", "Update Data Area Gagal");
+                        resenkrip["data"] = resError;
+                        return resenkrip;
+                    }
+                    else
+                    {
+                        using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
+                        {
+
+                            SqlCommand cmd1 = new SqlCommand(" select top 1 1 from mg_parking_area where area_kategori_id = @kategori and area_number = @number " +
+                              "", con);
+                            con.Open();
+                            cmd1.CommandType = CommandType.Text;
+                            cmd1.Parameters.AddWithValue("@kategori", kategoriId);
+                            cmd1.Parameters.AddWithValue("@number", areaName);
+                            SqlDataAdapter adpt = new SqlDataAdapter(cmd1);
+                            DataTable dt = new DataTable();
+                            adpt.Fill(dt);
+                            con.Close();
+
+                            if (dt.Rows.Count == 1)
+                            {
+                                resError["error"] = "data tidak boleh sama !!";
+                                resenkrip.Add("status", "0");
+                                resenkrip.Add("message", "Update Data Area Gagal");
+                                resenkrip["data"] = resError;
+                                return resenkrip;
+                            }
+                            else
+                            {
+                                SqlCommand cmd = new SqlCommand("UPDATE mg_parking_area SET area_kategori_id = @kategori, area_number=@number where area_id=@id ", con);
+                                con.Open();
+                                cmd.CommandType = CommandType.Text;
+                                cmd.Parameters.AddWithValue("@kategori", kategoriId);
+                                cmd.Parameters.AddWithValue("@number", areaName);
+                                cmd.Parameters.AddWithValue("@id", request.id);
+                                cmd.ExecuteNonQuery();
+                                //cmd.Parameters.AddWithValue("@regno", request.regno);
+                                //cmd.Parameters.AddWithValue("@type", request.type);
+                                con.Close();
+                            }
+
+                              
+                        }
+                    }
+
+                      
+
+                }
+                resenkrip.Add("status", "1");
+                resenkrip.Add("message", "Update Data Ares Success");
+            }
+            catch (Exception q)
+            {
+                resenkrip.Add("status", "0");
+                resenkrip.Add("message", "Update Data Ares Gagal");
+                
+            }
+
+          
+            return resenkrip;
+        }
+    }
+}
