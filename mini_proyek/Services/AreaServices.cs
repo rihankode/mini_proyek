@@ -108,26 +108,60 @@ namespace mini_proyek.Services
 
             var resenkrip = new Dictionary<string, object>();
 
+            string msg = "";
+            string sts = "";
 
             try
             {
                 using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
                 {
-                    List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
-                    SqlCommand cmd = new SqlCommand("DELETE FROM mg_parking_area WHERE area_id = @id ", con);
+                    SqlCommand cmd2 = new SqlCommand("SELECT top 1 1 FROM mg_parking_slot where slot_user_id IS NULL  ", con);
                     con.Open();
-                    cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.AddWithValue("@id", request.id);
-                    cmd.ExecuteNonQuery();
-                    //cmd.Parameters.AddWithValue("@regno", request.regno);
-                    //cmd.Parameters.AddWithValue("@type", request.type);
+                    cmd2.CommandType = CommandType.Text;
+                    SqlDataAdapter adpt = new SqlDataAdapter(cmd2);
+                    DataTable dt = new DataTable();
+                    adpt.Fill(dt);
                     con.Close();
+
+                    if (dt.Rows.Count > 0)
+                    {
+                        msg = " Tempat Sedang digunakan tidak bisa dihapus ";
+                        sts = "0";
+                    }
+                    else
+                    {
+                        SqlCommand cmd1 = new SqlCommand("DELETE FROM mg_parking_slot WHERE area_id = @id ", con);
+                        con.Open();
+                        cmd1.CommandType = CommandType.Text;
+                        cmd1.Parameters.AddWithValue("@id", request.id);
+                        cmd1.ExecuteNonQuery();
+                        //cmd.Parameters.AddWithValue("@regno", request.regno);
+                        //cmd.Parameters.AddWithValue("@type", request.type);
+                        con.Close();
+
+                        SqlCommand cmd = new SqlCommand("DELETE FROM mg_parking_area WHERE area_id = @id ", con);
+                        con.Open();
+                        cmd.CommandType = CommandType.Text;
+                        cmd.Parameters.AddWithValue("@id", request.id);
+                        cmd.ExecuteNonQuery();
+                        //cmd.Parameters.AddWithValue("@regno", request.regno);
+                        //cmd.Parameters.AddWithValue("@type", request.type);
+                        con.Close();
+
+                        msg = "Tempat Berhasil dihapus ";
+                        sts = "1";
+                    }
+
+
+                    resenkrip.Add("status", sts);
+                    resenkrip.Add("message", msg);
                 }
 
 
-                resenkrip.Add("status", "1");
-                resenkrip.Add("message", "Hapus Data Ares Success");
             }
+
+
+              
             catch (Exception e )
             {
                 resenkrip.Add("status", "0");
