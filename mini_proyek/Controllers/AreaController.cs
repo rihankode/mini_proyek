@@ -113,5 +113,29 @@ namespace mini_proyek.Controllers
             }
         }
 
+        [Route("services/getAreaById")]
+        [HttpPost]
+        public IActionResult getdataById(Area request)
+        {
+            try
+            {
+                //string headerDevice = Request.Headers["Device"].ToString();
+                //string headerVersion = Request.Headers["Version"].ToString();
+                var result = _areaInterfaces.getDataById(request);//, headerDevice,headerVersion);
+
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new
+                {
+
+                    status = "0",
+                    //message = "Get Data Failed",
+                    message = e.Message.ToString(),
+                });
+            }
+        }
+
     }
 }

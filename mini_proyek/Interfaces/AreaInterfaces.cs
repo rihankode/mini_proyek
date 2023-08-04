@@ -12,5 +12,6 @@ namespace mini_proyek.Interfaces
 
         Dictionary<string, object> Delete_area(Area request);
 
+        Dictionary<string, object> getDataById(Area request);
     }
 }

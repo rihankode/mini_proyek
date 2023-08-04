@@ -138,6 +138,67 @@ namespace mini_proyek.Services
 
             return resenkrip;
         }
+
+        public Dictionary<string, object> getDataById(Area request)
+        {
+            var resenkrip = new Dictionary<string, object>();
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
+                {
+                    List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
+                    SqlCommand cmd = new SqlCommand("SELECT a.area_id AS id, b.kategori_name AS areaName, a.area_number as areaNumber " +
+                        "FROM mg_parking_area a  join md_kategori_area b on a.area_kategori_id=b.kat_id where a.area_id=@id", con);
+                    con.Open();
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@id", request.id);
+
+                    SqlDataAdapter adpt = new SqlDataAdapter(cmd);
+                    DataTable dt = new DataTable();
+                    adpt.Fill(dt);
+                    con.Close();
+                    //cmd.Parameters.AddWithValue("@regno", request.regno);
+                    //cmd.Parameters.AddWithValue("@type", request.type);
+                    if (dt.Rows.Count > 0)
+                    {
+                        for (int i = 0; i < dt.Rows.Count; i++)
+                        {
+                            var resx = new Dictionary<string, object>();
+                            for (int j = 0; j < dt.Columns.Count; j++)
+                            {
+                                resx[dt.Columns[j].ToString()] = dt.Rows[i][j].ToString();
+                            }
+                            dataResult.Add(resx);
+                        }
+                        resenkrip.Add("status", "1");
+                        resenkrip.Add("message", "Get Data Area Success");
+                        resenkrip["data"] = dataResult;
+
+
+                        //#region Log Location
+
+                        //Log_User_Location(request.userid, request.lon, request.lat, request.addr, "Get Data All");
+
+                        //#endregion
+                    }
+                    else
+                    {
+                        resenkrip.Add("status", "1");
+                        resenkrip.Add("message", "Get Data Area Not Found");
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                resenkrip.Add("status", "0");
+                resenkrip.Add("message", "Hapus Data Area Gagal");
+            }
+
+            return resenkrip;
+        }
+
         public Dictionary<string, object> Get_data_Area(Area request)
         {
 
@@ -301,5 +362,6 @@ namespace mini_proyek.Services
           
             return resenkrip;
         }
+
     }
 }

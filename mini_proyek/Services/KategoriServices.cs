@@ -112,24 +112,53 @@ namespace mini_proyek.Services
         {
 
 
-                var resenkrip = new Dictionary<string, object>();
+           var resenkrip = new Dictionary<string, object>();
 
             try
             {
+
+                string msg = "";
+                string sts = "";
                 using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
                 {
-                    List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
-                    SqlCommand cmd = new SqlCommand("DELETE FROM md_kategori_area WHERE kat_id = @id ", con);
+
+                    SqlCommand cmd1 = new SqlCommand("SELECT top 1 1 FROM mg_parking_area where area_kategori_id = @id ", con);
                     con.Open();
-                    cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.AddWithValue("@id", request.id);
-                    cmd.ExecuteNonQuery();
-                    //cmd.Parameters.AddWithValue("@regno", request.regno);
-                    //cmd.Parameters.AddWithValue("@type", request.type);
+                    cmd1.CommandType = CommandType.Text;
+                    cmd1.Parameters.AddWithValue("@id", request.id);
+
+                    SqlDataAdapter adpt = new SqlDataAdapter(cmd1);
+                    DataTable dt = new DataTable();
+                    adpt.Fill(dt);
                     con.Close();
+
+                    if (dt.Rows.Count > 0)
+                    {
+                        msg = "Data Kategori sudah digunakan dan tidak bisa dihapus";
+                        sts = "0";
+                    }
+                    else
+                    {
+                        List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
+                        SqlCommand cmd = new SqlCommand("DELETE FROM md_kategori_area WHERE kat_id = @id ", con);
+                        con.Open();
+                        cmd.CommandType = CommandType.Text;
+                        cmd.Parameters.AddWithValue("@id", request.id);
+                        cmd.ExecuteNonQuery();
+                        //cmd.Parameters.AddWithValue("@regno", request.regno);
+                        //cmd.Parameters.AddWithValue("@type", request.type);
+                        con.Close();
+
+                        msg = "Data Kategori Berhasil dihapus";
+                        sts = "1";
+                    }
+
                 }
-                resenkrip.Add("status", "1");
-                resenkrip.Add("message", "Hapus Data Kategori Success");
+
+                resenkrip.Add("status", sts);
+                resenkrip.Add("message", msg);
+
+
             }
             catch (Exception e)
             {
