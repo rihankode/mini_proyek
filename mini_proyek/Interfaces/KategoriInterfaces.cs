@@ -11,5 +11,7 @@ namespace mini_proyek.Interfaces
         Dictionary<string, object> Update_Data_katgeori(Kategori request);
 
         Dictionary<string, object> Delete_data(Kategori request);
+
+        Dictionary<string, object> getDataById(Kategori request);
     }
 }

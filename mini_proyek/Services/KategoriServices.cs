@@ -112,8 +112,6 @@ namespace mini_proyek.Services
         {
 
 
-         
-
                 var resenkrip = new Dictionary<string, object>();
 
             try
@@ -141,6 +139,66 @@ namespace mini_proyek.Services
             
             return resenkrip;
         }
+
+        public Dictionary<string, object> getDataById(Kategori request)
+        {
+            var resenkrip = new Dictionary<string, object>();
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
+                {
+                    List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
+                    SqlCommand cmd = new SqlCommand("SELECT kat_id id, kategori_name kategoriNamr,kategori_area_sts status FROM md_kategori_area where kat_id = @id ", con);
+                    con.Open();
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@id", request.id);
+
+                    SqlDataAdapter adpt = new SqlDataAdapter(cmd);
+                    DataTable dt = new DataTable();
+                    adpt.Fill(dt);
+                    con.Close();
+                    //cmd.Parameters.AddWithValue("@regno", request.regno);
+                    //cmd.Parameters.AddWithValue("@type", request.type);
+                    if (dt.Rows.Count > 0)
+                    {
+                        for (int i = 0; i < dt.Rows.Count; i++)
+                        {
+                            var resx = new Dictionary<string, object>();
+                            for (int j = 0; j < dt.Columns.Count; j++)
+                            {
+                                resx[dt.Columns[j].ToString()] = dt.Rows[i][j].ToString();
+                            }
+                            dataResult.Add(resx);
+                        }
+                        resenkrip.Add("status", "1");
+                        resenkrip.Add("message", "Get Data Kategori Success");
+                        resenkrip["data"] = dataResult;
+
+
+                        //#region Log Location
+
+                        //Log_User_Location(request.userid, request.lon, request.lat, request.addr, "Get Data All");
+
+                        //#endregion
+                    }
+                    else
+                    {
+                        resenkrip.Add("status", "1");
+                        resenkrip.Add("message", "Get Data Kategori Not Found");
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                resenkrip.Add("status", "0");
+                resenkrip.Add("message", "Hapus Data Kategori Gagal");
+            }
+
+            return resenkrip;
+        }
+
         public Dictionary<string, object> Get_kategori(Kategori request)
         {
 
@@ -175,7 +233,6 @@ namespace mini_proyek.Services
                 cmd.CommandType = CommandType.Text;
                 cmd.Parameters.AddWithValue("@INDEX", request.index);
                 cmd.Parameters.AddWithValue("@PERPAGE", request.perpage);
-                cmd.ExecuteNonQuery();
                 //cmd.Parameters.AddWithValue("@regno", request.regno);
                 //cmd.Parameters.AddWithValue("@type", request.type);
                 SqlDataAdapter adpt = new SqlDataAdapter(cmd);

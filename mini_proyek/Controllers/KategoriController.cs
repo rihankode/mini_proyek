@@ -110,5 +110,29 @@ namespace mini_proyek.Controllers
                 });
             }
         }
+
+        [Route("services/getDataById")]
+        [HttpPost]
+        public IActionResult getdataById(Kategori request)
+        {
+            try
+            {
+                //string headerDevice = Request.Headers["Device"].ToString();
+                //string headerVersion = Request.Headers["Version"].ToString();
+                var result = _kategoriInterfaces.getDataById(request);//, headerDevice,headerVersion);
+
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new
+                {
+
+                    status = "0",
+                    //message = "Get Data Failed",
+                    message = e.Message.ToString(),
+                });
+            }
+        }
     }
 }
