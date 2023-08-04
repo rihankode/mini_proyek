@@ -36,8 +36,9 @@ namespace mini_proyek.Services
                  
 
                     string data = objJson["kategoriName"].ToString();
+                    string seq = objJson["sequence"].ToString();
 
-                    if ( data == "")
+                    if ( data == "" || seq == "" )
                     {
                         resError["error"] = "data tidak boleh kosong !!";
                         resenkrip.Add("status", "0");
@@ -51,11 +52,12 @@ namespace mini_proyek.Services
                         {
 
 
-                            SqlCommand cmd1 = new SqlCommand(" select top 1 1 from md_kategori_area where kategori_name = @kategori " +
+                            SqlCommand cmd1 = new SqlCommand(" select top 1 1 from md_kategori_area where kategori_name = @kategori and kategori_seq = @seq " +
                                "", con);
                             con.Open();
                             cmd1.CommandType = CommandType.Text;
                             cmd1.Parameters.AddWithValue("@kategori", data);
+                            cmd1.Parameters.AddWithValue("@seq", seq);
                             SqlDataAdapter adpt = new SqlDataAdapter(cmd1);
                             DataTable dt = new DataTable();
                             adpt.Fill(dt);
@@ -71,11 +73,12 @@ namespace mini_proyek.Services
                             }
                             else
                             {
-                                SqlCommand cmd = new SqlCommand(" INSERT INTO md_kategori_area (kategori_name,kategori_area_sts) VALUES (@kategori,1) " +
+                                SqlCommand cmd = new SqlCommand(" INSERT INTO md_kategori_area (kategori_name,kategori_area_sts,kategori_seq) VALUES (@kategori,1,@seq) " +
                               "", con);
                                 con.Open();
                                 cmd.CommandType = CommandType.Text;
                                 cmd.Parameters.AddWithValue("@kategori", data);
+                                cmd.Parameters.AddWithValue("@seq", seq);
                                 cmd.ExecuteNonQuery();
                                 con.Close();
                             }
