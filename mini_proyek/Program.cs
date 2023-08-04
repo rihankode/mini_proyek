@@ -15,6 +15,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<KategoriInterfaces, KategoriServices>();
 builder.Services.AddScoped<AreaInterfaces, AreaServices>();
 builder.Services.AddScoped<SlotInterface, SlotsServices>();
+builder.Services.AddScoped<HistoryInterface, HistoryServices>();
 
 var app = builder.Build();
 

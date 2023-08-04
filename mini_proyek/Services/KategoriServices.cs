@@ -168,7 +168,7 @@ namespace mini_proyek.Services
             using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
             {
                 List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
-                string querys = String.Format("SELECT kat_id AS id,kategori_name name,kategori_area_sts as status " +
+                string querys = String.Format("SELECT kat_id AS id,kategori_name kategoriName,kategori_area_sts as status " +
                     "FROM md_kategori_area WITH(NOLOCK) where 1=1 {0}  ORDER BY kat_id OFFSET ({1}-1)*{2} ROWS FETCH NEXT {2} ROWS ONLY ", qfilter, request.index, request.perpage);
                 SqlCommand cmd = new SqlCommand(querys, con);
                 con.Open();
