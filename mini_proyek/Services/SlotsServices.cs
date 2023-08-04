@@ -74,7 +74,7 @@ namespace mini_proyek.Services
                     SqlCommand cmd3 = new SqlCommand("Sp_slot_checkout", con);
                     con.Open();
                     cmd3.CommandType = CommandType.StoredProcedure;
-                    cmd3.Parameters.AddWithValue("@identity", request.userIdentity);
+                    cmd3.Parameters.AddWithValue("@userid", request.userIdentity);
                     SqlDataAdapter adpt1 = new SqlDataAdapter(cmd3);
                     DataTable dt1 = new DataTable();
                     adpt1.Fill(dt1);
