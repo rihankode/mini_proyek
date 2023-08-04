@@ -8,9 +8,13 @@
 
         public string? id { get; set; }
 
+        public string? slotId { get; set; }
+
         public int? index { get; set; }
 
         public int? perpage { get; set; }
+
+        public string? status { get; set;}
 
     }
 }

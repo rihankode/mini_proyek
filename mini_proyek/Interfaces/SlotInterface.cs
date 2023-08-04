@@ -9,5 +9,7 @@ namespace mini_proyek.Interfaces
         Dictionary<string, object> get_slot(Slots request);
 
         Dictionary<string, object> get_checkout(Slots request);
+
+        Dictionary<string, object> update_status(Slots request);
     }
 }

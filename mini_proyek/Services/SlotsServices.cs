@@ -141,7 +141,7 @@ namespace mini_proyek.Services
             using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
             {
                 List<Dictionary<string, object>> dataResult = new List<Dictionary<string, object>>();
-                string querys = String.Format("select a.slot_kode kode, b.area_number number,c.kategori_name name, a.slot_user_id userId,format(d.user_car_login_created, 'dd MMMM yyyy hh:MM', 'id-ID') as timeCheckin ," +
+                string querys = String.Format("select a.slot_id id, a.slot_kode kode, b.area_number number,c.kategori_name name, a.slot_user_id userId,format(d.user_car_login_created, 'dd MMMM yyyy hh:MM', 'id-ID') as timeCheckin ," +
                     " case when a.slot_sts = '1' then 'kososng' when a.slot_sts='2' 'digunakan' else 'non-aktif' end as 'status' " +
                     "from mg_parking_slot a WITH (NOLOCK)       join mg_parking_area b on a.area_id = b.area_id" +
                     " join md_kategori_area c on c.kat_id = b.area_kategori_id left join mg_parking_user_car d on d.user_car_id=a.slot_user_id " +
@@ -190,6 +190,55 @@ namespace mini_proyek.Services
             }
 
             return res;
+        }
+
+        public Dictionary<string, object> update_status(Slots request)
+        {
+            var resenkrip = new Dictionary<string, object>();
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(_configuration.GetSection("ConnectionString").Value))
+                {
+                    SqlCommand cmd2 = new SqlCommand("SELECT top 1 1 FROM mg_parking_slot where slot_id=@id and slot_user_id is not null ", con);
+                    con.Open();
+                    cmd2.CommandType = CommandType.Text;
+                    cmd2.Parameters.AddWithValue("@id", request.slotId);
+                    SqlDataAdapter adpt = new SqlDataAdapter(cmd2);
+                    DataTable dt = new DataTable();
+                    adpt.Fill(dt);
+                    con.Close();
+
+                    if (dt.Rows.Count > 0)
+                    {
+                        resenkrip.Add("status", "0");
+                        resenkrip.Add("message", "update status gagal slot masih digunakan");
+                    }
+                    else
+                    {
+                        SqlCommand cmd3 = new SqlCommand("UPDATE mg_parking_slot SET slot_sts=0 WHERE slot_id = @slotid ", con);
+                        con.Open();
+                        cmd3.CommandType = CommandType.Text;
+                        cmd3.Parameters.AddWithValue("@slotid", request.slotId);
+                        cmd3.ExecuteNonQuery();
+                        con.Close();
+                        resenkrip.Add("status", "1");
+                        resenkrip.Add("message", "update status slot area berhasil");
+                       
+                    }
+
+                }
+
+            }
+            catch (Exception q)
+            {
+
+                resenkrip.Add("status", "0");
+                resenkrip.Add("message", "update status gagal");
+            }
+
+
+            return resenkrip;
         }
     }
 }
